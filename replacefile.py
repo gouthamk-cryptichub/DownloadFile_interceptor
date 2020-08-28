@@ -6,10 +6,12 @@ def mod_packet(packet):
     use_packet = scapy.IP(packet.get_payload())
     if use_packet.haslayer(scapy.Raw):
         if use_packet[scapy.TCP].dport == 80:
-            print("[+] HTTP Request...")
-            print(use_packet.show())
-        if use_packet[scapy.TCP].sport == 80:
-            print("[+] HTTP Response...")
+            print("[+] HTTP Request...##########")
+            if ".exe" in use_packet[scapy.Raw].load:
+                print("[+] Detected Download .exe file REQUEST...")
+                print(use_packet.show())
+        elif use_packet[scapy.TCP].sport == 80:
+            print("[+] HTTP Response...#########")
             print(use_packet.show())
     packet.accept()
 
