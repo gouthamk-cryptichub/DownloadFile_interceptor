@@ -4,7 +4,13 @@ import scapy.all as scapy
 
 def mod_packet(packet):
     use_packet = scapy.IP(packet.get_payload())
-    packet.set_payload(str(use_packet))
+    if use_packet.haslayer(scapy.Raw):
+        if use_packet[scapy.TCP].dport == 80:
+            print("[+] HTTP Request...")
+            print(use_packet.show())
+        if use_packet[scapy.TCP].sport == 80:
+            print("[+] HTTP Response...")
+            print(use_packet.show())
     packet.accept()
 
 queue = netq.NetfilterQueue()
