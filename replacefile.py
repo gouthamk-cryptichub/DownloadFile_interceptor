@@ -15,6 +15,7 @@ def mod_packet(packet):
             if use_packet[scapy.TCP].seq in req_ack:
                 print("[+] HTTP Response for the Download Req...#########")
                 print(use_packet.show())
+                req_ack.remove(use_packet[scapy.TCP].seq)
     packet.accept()
 
 queue = netq.NetfilterQueue()
